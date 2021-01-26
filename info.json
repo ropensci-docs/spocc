@@ -1,0 +1,12 @@
+{
+  "commit": {
+    "commit": "21bae47e4f915910501eb33fe405afa8d9676554",
+    "author": "Scott Chamberlain <sckott@fastmail.com>",
+    "time": "2021-01-26 17:47:37",
+    "files": 2,
+    "merge": false,
+    "message": "remove occurrences book references from pkg\n"
+  },
+  "remote": "https://github.com/ropensci/spocc",
+  "pkg": "spocc"
+}

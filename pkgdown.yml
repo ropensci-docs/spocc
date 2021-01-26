@@ -1,0 +1,11 @@
+pandoc: '2.5'
+pkgdown: 1.6.1
+pkgdown_sha: ~
+articles:
+  fixnames: fixnames.html
+  spocc: spocc.html
+last_built: 2021-03-13T16:09Z
+urls:
+  reference: https://docs.ropensci.org/spocc/reference
+  article: https://docs.ropensci.org/spocc/articles
+
