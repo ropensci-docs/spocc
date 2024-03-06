@@ -1,0 +1,12 @@
+{
+  "commit": {
+    "commit": "cb80a64abc0238d3c2de7b89dcf8ddf0b38e7c70",
+    "author": "hannahlowens <hannah.owens@gmail.com>",
+    "time": "2024-03-06 14:15:24",
+    "files": 14,
+    "merge": false,
+    "message": "bad obis.org link and update website\n"
+  },
+  "repo": "https://github.com/ropensci/spocc",
+  "pkg": "spocc"
+}
