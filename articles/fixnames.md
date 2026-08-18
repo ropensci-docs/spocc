@@ -1,0 +1,26 @@
+# cleaning names
+
+One problem you often run in to is that there can be various names for
+the same taxon in any one source. For example:
+
+``` r
+
+library(spocc)
+df <- occ(query = 'Pinus contorta', from = c('gbif', 'idigbio'), limit = 50)
+unique(df$gbif$data$Pinus_contorta$name)
+#> [1] "Pinus contorta Douglas ex Loudon"     
+#> [2] "Pinus contorta var. latifolia Engelm."
+#> [3] "Pinus contorta var. contorta"
+unique(df$idigbio$data$Pinus_contorta$name)
+#> [1] "pinus contorta"
+```
+
+This is fine, but when trying to make a map in which points are colored
+for each taxon, you can have many colors for a single taxon, where
+instead one color per taxon is more appropriate. There is a function in
+`scrubr` called `fix_names()`, which has a few options in which you can
+take the shortest names (usually just the plain binomials like *Homo
+sapiens*), or the original name queried, or a vector of names supplied
+by the user. `scrubr` is no longer maintained and no longer on CRAN, but
+you can get the package on GitHub at
+<http://github.com/ropensci-archive/scrubr>.

@@ -1,0 +1,13 @@
+{
+  "commit": {
+    "commit": "d8d010d06de31415a1bc2637802af486680e1d83",
+    "author": "hannahlowens <hannah.owens@gmail.com>",
+    "time": "2025-12-06T16:18:24Z",
+    "files": 39,
+    "merge": false,
+    "message": "Updated R version, testing rerun\n"
+  },
+  "repo": "https://github.com/ropensci/spocc",
+  "pkg": "spocc",
+  "time": "2026-08-18T12:17:30Z"
+}

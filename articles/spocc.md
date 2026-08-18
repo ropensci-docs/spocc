@@ -1,0 +1,269 @@
+# spocc introduction
+
+The rOpenSci projects aims to provide programmatic access to scientific
+data repositories on the web. A vast majority of the packages in our
+current suite retrieve some form of biodiversity or taxonomic data.
+Since several of these datasets have been georeferenced, it provides
+numerous opportunities for visualizing species distributions, building
+species distribution maps, and for using it analyses such as species
+distribution models. In an effort to streamline access to these data, we
+have developed a package called `spocc`, which provides a unified API to
+all the biodiversity sources that we provide. The obvious advantage is
+that a user can interact with a common API and not worry about the
+nuances in syntax that differ between packages. As more data sources
+come online, users can access even more data without significant changes
+to their code. However, it is important to note that spocc will never
+replicate the full functionality that exists within specific packages.
+Therefore users with a strong interest in one of the specific data
+sources listed below would benefit from familiarising themselves with
+the inner working of the appropriate packages.
+
+## Data Sources
+
+`spocc` currently interfaces with seven major biodiversity repositories
+
+1.  [Global Biodiversity Information Facility (GBIF)](http://gbif.org/)
+    (via `rgbif`) GBIF is a government funded open data repository with
+    several partner organizations with the express goal of providing
+    access to data on Earth’s biodiversity. The data are made available
+    by a network of member nodes, coordinating information from various
+    participant organizations and government agencies.
+
+2.  [iNaturalist](http://inaturalist.org/) iNaturalist provides access
+    to crowd sourced citizen science data on species observations.
+
+3.  [VertNet](http://vertnet.org/) (via `rvertnet`) Similar to `rgbif`
+    (see below), VertNet provides access to more than 80 million
+    vertebrate records spanning a large number of institutions and
+    museums primarly covering four major disciplines (mammology,
+    herpetology, ornithology, and icthyology).
+
+4.  [eBird](http://ebird.org/home) (via `rebird`) ebird is a database
+    developed and maintained by the Cornell Lab of Ornithology and the
+    National Audubon Society. It provides real-time access to checklist
+    data, data on bird abundance and distribution, and communtiy reports
+    from birders.
+
+5.  [iDigBio](http://idigbio.org/) (via `ridigbio`) iDigBio facilitates
+    the digitization of biological and paleobiological specimens and
+    their associated data, and houses specimen data, as well as
+    providing their specimen data via RESTful web services.
+
+6.  [OBIS](http://obis.org/) OBIS (Ocean Biogeographic Information
+    System) allows users to search marine species datasets from all of
+    the world’s oceans.
+
+7.  [Atlas of Living Australia](http://ala.org.au/) ALA (Atlas of Living
+    Australia) contains information on all the known species in
+    Australia aggregated from a wide range of data providers: museums,
+    herbaria, community groups, government departments, individuals and
+    universities; it contains more than 50 million occurrence records.
+
+**Important Note:** It’s important to keep in mind that several data
+providers interface with many of the above mentioned repositories. This
+means that occurence data obtained from OBIS may be duplicates of data
+that are also available through GBIF. We do not have a way to resolve
+these duplicates or overlaps at this time but it is an issue we are
+hoping to resolve in future versions of the package. See
+[`?spocc_duplicates`](https://docs.ropensci.org/spocc/reference/spocc_duplicates.md),
+after installation, for more.
+
+## Data retrieval
+
+The most significant function in spocc is the `occ` (short for
+occurrence) function. `occ` takes a query, often a species name, and
+searches across all data sources specified in the `from` argument. For
+example, one can search for all occurrences of [Sharp-shinned
+Hawks](http://allaboutbirds.org/guide/sharp-shinned_hawk/id) (*Accipiter
+striatus*) from the GBIF database with the following R call.
+
+``` r
+
+library('spocc')
+(df <- occ(query = 'Accipiter striatus', from = 'gbif'))
+#> Searched: gbif
+#> Occurrences - Found: 1,407,843, Returned: 500
+#> Search type: Scientific
+#>   gbif: Accipiter striatus (500)
+```
+
+The data returned are part of a `S3` class called `occdat`. This class
+has slots for each of the data sources described above. One can easily
+switch the source by changing the `from` parameter in the function call
+above.
+
+Within each data source is the set of species queried. In the above
+example, we only asked for occurrence data for one species, but we could
+have asked for any number. Let’s say we asked for data for two species:
+*Accipiter striatus*, and *Pinus contorta*. Then the structure of the
+response would be
+
+    response -- |
+                | -- gbif ------- |
+                                  | -- Accipiter_striatus
+                                  | -- Pinus_contorta
+
+                | -- idigbio ------ |
+                                    | -- Accipiter_striatus
+                                    | -- Pinus_contorta
+
+                ... and so on for each data source
+
+If you only request data from gbif, like `from = 'gbif'`, then the other
+four source slots are present in the response object, but have no data.
+
+You can quickly get just the GBIF data by indexing to it, like
+
+``` r
+
+df$gbif
+#> Species [Accipiter striatus (500)] 
+#> First 10 rows of [Accipiter_striatus]
+#> 
+#> # A tibble: 500 × 78
+#>    name       longi…¹ latit…² prov  issues key   scien…³ datas…⁴ publi…⁵ insta…⁶
+#>    <chr>        <dbl>   <dbl> <chr> <chr>  <chr> <chr>   <chr>   <chr>   <chr>  
+#>  1 Accipiter…   -96.6    33.1 gbif  cdrou… 3455… Accipi… 50c950… 28eb1a… 997448…
+#>  2 Accipiter…   -82.0    40.3 gbif  cdrou… 3455… Accipi… 50c950… 28eb1a… 997448…
+#>  3 Accipiter…  -120.     39.5 gbif  cdrou… 3455… Accipi… 50c950… 28eb1a… 997448…
+#>  4 Accipiter…  -105.     28.3 gbif  cdrou… 3455… Accipi… 50c950… 28eb1a… 997448…
+#>  5 Accipiter…   -74.5    40.8 gbif  cdrou… 3455… Accipi… 50c950… 28eb1a… 997448…
+#>  6 Accipiter…  -123.     49.1 gbif  cdrou… 3455… Accipi… 50c950… 28eb1a… 997448…
+#>  7 Accipiter…   -77.6    39.0 gbif  cdrou… 3455… Accipi… 50c950… 28eb1a… 997448…
+#>  8 Accipiter…  -122.     38.0 gbif  cdrou… 3455… Accipi… 50c950… 28eb1a… 997448…
+#>  9 Accipiter…  -122.     37.8 gbif  cdrou… 3455… Accipi… 50c950… 28eb1a… 997448…
+#> 10 Accipiter…  -121.     36.5 gbif  cdrou… 3455… Accipi… 50c950… 28eb1a… 997448…
+#> # … with 490 more rows, 68 more variables: publishingCountry <chr>,
+#> #   protocol <chr>, lastCrawled <chr>, lastParsed <chr>, crawlId <int>,
+#> #   hostingOrganizationKey <chr>, basisOfRecord <chr>, occurrenceStatus <chr>,
+#> #   taxonKey <int>, kingdomKey <int>, phylumKey <int>, classKey <int>,
+#> #   orderKey <int>, familyKey <int>, genusKey <int>, speciesKey <int>,
+#> #   acceptedTaxonKey <int>, acceptedScientificName <chr>, kingdom <chr>,
+#> #   phylum <chr>, order <chr>, family <chr>, genus <chr>, species <chr>, …
+```
+
+When you get data from multiple providers, the fields returned are
+slightly different because each data provider uses different formats for
+their data; different arrangements of data and different variable names
+for the same thing (e.g., one data provider may call latitude
+“latitude”, while another may call it “lat”). For example:
+
+``` r
+
+df <- occ(query = 'Accipiter striatus', from = c('gbif', 'idigbio'), limit = 25)
+df$gbif$data$Accipiter_striatus
+#> # A tibble: 25 × 75
+#>    name       longi…¹ latit…² issues prov  key   scien…³ datas…⁴ publi…⁵ insta…⁶
+#>    <chr>        <dbl>   <dbl> <chr>  <chr> <chr> <chr>   <chr>   <chr>   <chr>  
+#>  1 Accipiter…   -96.6    33.1 cdrou… gbif  3455… Accipi… 50c950… 28eb1a… 997448…
+#>  2 Accipiter…   -82.0    40.3 cdrou… gbif  3455… Accipi… 50c950… 28eb1a… 997448…
+#>  3 Accipiter…  -120.     39.5 cdrou… gbif  3455… Accipi… 50c950… 28eb1a… 997448…
+#>  4 Accipiter…  -105.     28.3 cdrou… gbif  3455… Accipi… 50c950… 28eb1a… 997448…
+#>  5 Accipiter…   -74.5    40.8 cdrou… gbif  3455… Accipi… 50c950… 28eb1a… 997448…
+#>  6 Accipiter…  -123.     49.1 cdrou… gbif  3455… Accipi… 50c950… 28eb1a… 997448…
+#>  7 Accipiter…   -77.6    39.0 cdrou… gbif  3455… Accipi… 50c950… 28eb1a… 997448…
+#>  8 Accipiter…  -122.     38.0 cdrou… gbif  3455… Accipi… 50c950… 28eb1a… 997448…
+#>  9 Accipiter…  -122.     37.8 cdrou… gbif  3455… Accipi… 50c950… 28eb1a… 997448…
+#> 10 Accipiter…  -121.     36.5 cdrou… gbif  3455… Accipi… 50c950… 28eb1a… 997448…
+#> # … with 15 more rows, 65 more variables: publishingCountry <chr>,
+#> #   protocol <chr>, lastCrawled <chr>, lastParsed <chr>, crawlId <int>,
+#> #   hostingOrganizationKey <chr>, basisOfRecord <chr>, occurrenceStatus <chr>,
+#> #   taxonKey <int>, kingdomKey <int>, phylumKey <int>, classKey <int>,
+#> #   orderKey <int>, familyKey <int>, genusKey <int>, speciesKey <int>,
+#> #   acceptedTaxonKey <int>, acceptedScientificName <chr>, kingdom <chr>,
+#> #   phylum <chr>, order <chr>, family <chr>, genus <chr>, species <chr>, …
+df$idigbio$data$Accipiter_striatus
+#> # A tibble: 25 × 83
+#>    associa…¹ barco…² basis…³ bed   canon…⁴ catal…⁵ class colle…⁶ colle…⁷ colle…⁸
+#>    <lgl>     <lgl>   <chr>   <lgl> <chr>   <chr>   <chr> <chr>   <chr>   <lgl>  
+#>  1 NA        NA      preser… NA    accipi… 76668   aves  bird    http:/… NA     
+#>  2 NA        NA      preser… NA    accipi… usnm 4… aves  birds   urn:uu… NA     
+#>  3 NA        NA      preser… NA    accipi… 21409.0 aves  birds   <NA>    NA     
+#>  4 NA        NA      preser… NA    accipi… bird-1… aves  bird    <NA>    NA     
+#>  5 NA        NA      preser… NA    accipi… 3726    aves  av      <NA>    NA     
+#>  6 NA        NA      preser… NA    accipi… 2003-0… aves  birds   <NA>    NA     
+#>  7 NA        NA      preser… NA    accipi… 39542   aves  birds   <NA>    NA     
+#>  8 NA        NA      preser… NA    accipi… bird-2… aves  bird    <NA>    NA     
+#>  9 NA        NA      preser… NA    accipi… cmnav … aves  cmnav   http:/… NA     
+#> 10 NA        NA      preser… NA    accipi… 22879   aves  kuo     <NA>    NA     
+#> # … with 15 more rows, 73 more variables: collector <chr>, commonname <chr>,
+#> #   commonnames <list>, continent <chr>, coordinateuncertainty <dbl>,
+#> #   country <chr>, countrycode <chr>, county <chr>, datasetid <chr>,
+#> #   datecollected <date>, datemodified <chr>, dqs <dbl>,
+#> #   earliestageorloweststage <lgl>, earliesteonorlowesteonothem <lgl>,
+#> #   earliestepochorlowestseries <lgl>, earliesteraorlowesterathem <lgl>,
+#> #   earliestperiodorlowestsystem <lgl>, etag <chr>, eventdate <chr>, …
+```
+
+We provide a function `occ2df` that pulls out a few key columns needed
+for making maps:
+
+``` r
+
+occ2df(df)
+#> # A tibble: 50 × 6
+#>    name                              longitude latitude prov  date       key    
+#>    <chr>                                 <dbl>    <dbl> <chr> <date>     <chr>  
+#>  1 Accipiter striatus Vieillot, 1808     -96.6     33.1 gbif  2022-01-02 345549…
+#>  2 Accipiter striatus Vieillot, 1808     -82.0     40.3 gbif  2022-01-06 345550…
+#>  3 Accipiter striatus Vieillot, 1808    -120.      39.5 gbif  2022-01-13 345558…
+#>  4 Accipiter striatus Vieillot, 1808    -105.      28.3 gbif  2022-01-04 345559…
+#>  5 Accipiter striatus Vieillot, 1808     -74.5     40.8 gbif  2022-01-07 345563…
+#>  6 Accipiter striatus Vieillot, 1808    -123.      49.1 gbif  2022-01-13 345564…
+#>  7 Accipiter striatus Vieillot, 1808     -77.6     39.0 gbif  2022-01-02 345566…
+#>  8 Accipiter striatus Vieillot, 1808    -122.      38.0 gbif  2022-01-09 345566…
+#>  9 Accipiter striatus Vieillot, 1808    -122.      37.8 gbif  2022-01-07 345567…
+#> 10 Accipiter striatus Vieillot, 1808    -121.      36.5 gbif  2022-01-05 345567…
+#> # … with 40 more rows
+```
+
+[`occ2df()`](https://docs.ropensci.org/spocc/reference/occ2df.md) not
+only combines data into a single data.frame, but it also standardizes
+the key columns (name, longitude, latitude, prov (provider), date, and
+key (occurrence key)). Note that you can look up the exact occurrence
+with the data provider using the `key` value.
+
+### Standardized parameters
+
+Each data source has a variety of different ways, or parameters, to use
+to search its data. Some of the parameters are the same across data
+sources. In [`occ()`](https://docs.ropensci.org/spocc/reference/occ.md)
+we’ve attempted to surface those similar parameters so you can have a
+single way to define a parameter and it gets applied to every data
+source. This way you don’t have to know the vagaries of each data
+source, what formatting they expect, etc.
+
+The standardized parameters in
+[`occ()`](https://docs.ropensci.org/spocc/reference/occ.md) are:
+
+- query: a scientific taxon name
+- limit: number of records to retrieve
+- start: page number to start at
+- page: page number to retrieve
+- geometry: a “spatial filter” - bounding box, well known text, or an sp
+  or sf polygon or multipolygon
+- has_coords: exclude records without latitude/longitude data
+- date: a date range
+
+However, not all parameters across data sources are able to be
+standardized, so you can pass data source specific parameters to their
+matching parameter name, e.g., pass GBIF parameters to `gbifopts` and
+ALA parameters to `alaopts`.
+
+## Clean up taxonomic names
+
+See the vignette [cleaning
+names](http://docs.ropensci.org/spocc/articles/fixnames)
+
+## Clean data
+
+All data cleaning functionality is in a new package
+[scrubr](http://github.com/ropensci/scrubr). [On
+CRAN](http://cran.r-project.org/package=scrubr).
+
+## Make maps
+
+All mapping functionality is now in a separate package
+[mapr](http://github.com/ropensci/mapr) (formerly known as
+`spoccutils`), to make `spocc` easier to maintain. [On
+CRAN](http://cran.r-project.org/package=mapr).
